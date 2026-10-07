@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>INC 411 Flashcards — Industrial Safety</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, "Noto Sans Thai", "Sarabun", sans-serif; margin: 0; background: #f1f5f9; color: #1e293b; }
+  header { background: #0f766e; color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 10; }
+  header h1 { margin: 0; font-size: 17px; }
+  header p { margin: 4px 0 0; font-size: 12px; opacity: .85; }
+  .progress-wrap { background: #0d9488; padding: 8px 16px; position: sticky; top: 64px; z-index: 9; }
+  .progress-bar { height: 8px; background: rgba(255,255,255,.25); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #fef08a; width: 0%; transition: width .3s; }
+  .progress-text { color: #fff; font-size: 12px; margin-top: 4px; display: flex; justify-content: space-between; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 12px 16px; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 118px; z-index: 8; }
+  .chip { flex: 0 0 auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+  .chip.active { background: #0f766e; color: #fff; border-color: #0f766e; }
+  .stage { max-width: 640px; margin: 0 auto; padding: 20px 16px 120px; }
+  .card-scene { perspective: 1200px; margin-bottom: 16px; }
+  .card { position: relative; width: 100%; transform-style: preserve-3d; transition: transform .45s; cursor: pointer; display: grid; }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,.1); min-height: 300px; }
+  .face.front { background: #fff; border-top: 6px solid #0f766e; }
+  .face.back { background: #0f766e; color: #fff; transform: rotateY(180deg); }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .5px; opacity: .7; margin-bottom: 10px; }
+  .q { font-size: 20px; font-weight: 700; line-height: 1.5; }
+  .a { font-size: 17px; line-height: 1.7; }
+  .hint { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 10px; }
+  .controls { display: flex; gap: 10px; justify-content: center; margin-top: 18px; }
+  .btn { border: none; border-radius: 12px; padding: 12px 18px; font-size: 15px; cursor: pointer; font-weight: 600; }
+  .btn-nav { background: #e2e8f0; color: #334155; }
+  .btn-flip { background: #0f766e; color: #fff; flex: 1; max-width: 200px; }
+  .mark-row { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+  .btn-know { background: #dcfce7; color: #166534; }
+  .btn-unknown { background: #fee2e2; color: #991b1b; }
+  .btn-know.done, .btn-unknown.done { outline: 3px solid currentColor; }
+  .toolbar { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+  .btn-tool { background: #fff; border: 1px solid #cbd5e1; color: #475569; font-size: 13px; padding: 8px 14px; }
+  .counter { text-align: center; font-size: 13px; color: #64748b; margin-top: 12px; }
+  .done-screen { text-align: center; padding: 40px 20px; }
+  .done-screen h2 { color: #0f766e; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🦺 INC 411 Flashcards</h1>
+  <p>Industrial Safety — แตะการ์ดเพื่อพลิกดูคำตอบ</p>
+</header>
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+  <div class="progress-text"><span id="pcount">ใบที่ 1 / 104</span><span id="pscore">จำได้ 0 • ยังไม่ได้ 0</span></div>
+</div>
+<div class="chips" id="chips"></div>
+<div class="stage">
+  <div class="card-scene">
+    <div class="card" id="card">
+      <div class="face front"><div class="tag" id="tagF"></div><div class="q" id="q"></div></div>
+      <div class="face back"><div class="tag" id="tagB"></div><div class="a" id="a"></div></div>
+    </div>
+  </div>
+  <div class="hint">แตะที่การ์ด หรือกด Space เพื่อพลิก</div>
+  <div class="controls">
+    <button class="btn btn-nav" id="prev">← ก่อนหน้า</button>
+    <button class="btn btn-flip" id="flip">พลิกการ์ด</button>
+    <button class="btn btn-nav" id="next">ถัดไป →</button>
+  </div>
+  <div class="mark-row">
+    <button class="btn btn-know" id="know">✓ จำได้</button>
+    <button class="btn btn-unknown" id="unknown">✗ ยังไม่ได้</button>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-tool" id="shuffle">🔀 สลับไพ่</button>
+    <button class="btn btn-tool" id="reset">↺ รีเซ็ตคะแนน</button>
+  </div>
+  <div class="counter" id="counter"></div>
+</div>
+<script>
+const SESSIONS = {
+  "ALL": "ทั้งหมด", "S1": "S1 Intro", "S2": "S2 ทฤษฎีอุบัติเหตุ", "S3": "S3 กฎหมาย",
+  "S4": "S4 SMS/ISO 45001", "S5": "S5 Risk Analysis", "S6": "S6 ไฟ",
+  "S7": "S7 สารเคมี", "S8": "S8 Ergo/Human", "SE": "⚡ ไฟฟ้า"
+};
+const CARDS = [
+{s:"S1", q:"Industrial safety คืออะไร?", a:"ชุดของมาตรการ (protocols) + นโยบาย (policies) + กฎระเบียบ (regulations) เพื่อปกป้องคนงาน สถานที่ทำงาน อุปกรณ์ และสิ่งแวดล้อมจาก hazard — เป็น corrective measure ที่ผู้เชี่ยวชาญทบทวนเป็นระยะ"},
+{s:"S1", q:"เป้าหมาย 4 ข้อของ industrial safety", a:"1) ไม่มีผู้บาดเจ็บ/เสียชีวิต 2) ไม่มีความเสียหายต่อทรัพย์สิน 3) ผลผลิตสม่ำเสมอ (consistent productivity) 4) มีเวลาสำหรับปรับปรุง"},
+{s:"S1", q:"แยกให้ออก: Incident / Near miss / Accident", a:"Incident = เหตุการณ์เกิดจริงแต่ไม่มีผลร้าย | Near miss = เกือบเกิด (เวลา/ตำแหน่งขยับนิดเดียวคือเกิด) | Accident = มีผลร้ายจริงเกิดขึ้นแล้ว"},
+{s:"S1", q:"Danger คืออะไร ต่างจาก 3 คำบนอย่างไร?", a:"Danger = สภาพ/เงื่อนไขที่มีอยู่หรืออาจมีอยู่ ที่คาดได้อย่างสมเหตุสมผลว่าจะก่ออันตราย — เป็น 'เงื่อนไข' ไม่ใช่ 'เหตุการณ์'"},
+{s:"S1", q:"สัดส่วนสาเหตุของอุบัติเหตุ (เลขต้องจำ)", a:"Unsafe acts (การกระทำของคน) 88% / Unsafe conditions (สภาพไม่ปลอดภัย) 10% / Acts of God (เหตุสุดวิสัย) 2% — รวม 100%"},
+{s:"S1", q:"Heinrich/Bird accident triangle ตัวเลข?", a:"1 : 30 : 300 : 3,000 : 30,000 = เสียชีวิต : หยุดงาน/ทุพพลภาพ : บาดเจ็บรุนแรง : บาดเจ็บเบื้องต้น : การกระทำ/สภาพไม่ปลอดภัย"},
+{s:"S1", q:"Accident triangle สอนอะไร?", a:"เหตุการณ์ฐานล่างจำนวนมาก (near miss, unsafe act) คือรากฐานของอุบัติเหตุร้ายแรงยอดบน — จัดการฐานล่างได้ ยอดบนก็ไม่เกิด"},
+{s:"S1", q:"Iceberg theory: direct vs indirect effect", a:"Direct (เหนือน้ำที่เห็น) = บาดเจ็บ/ตาย | Indirect (ใต้น้ำที่ใหญ่กว่า) = เวลาทำงานที่เสีย ค่าซ่อมเครื่องจักร ผลผลิตลด เสียชื่อเสียง"},
+{s:"S1", q:"สูตร FR (Frequency Rate)", a:"FR = (จำนวนอุบัติเหตุ × 1,000,000) / ชั่วโมงการทำงานรวมทั้งหมด"},
+{s:"S1", q:"สูตร SR (Severity Rate)", a:"SR = (จำนวนวันหยุดงานที่เสียไป × 1,000,000) / ชั่วโมงการทำงานรวมทั้งหมด"},
+{s:"S1", q:"Safety culture: 3 ฝ่ายทำหน้าที่อะไร?", a:"Management: กำหนดนโยบาย + จัดสรรทรัพยากร | Supervisors: สนับสนุนและนำทีม | Workers: ระบุ hazard + ปฏิบัติตามกฎ"},
+{s:"S1", q:"ทำไม near miss ถึงสำคัญที่สุด?", a:"เป็น leading indicator (ตัวชี้วัดล่วงหน้า) — นโยบายที่ดีให้รางวัลการรายงาน near miss ไม่ใช่ลงโทษ เพราะมันคือสัญญาณเตือนก่อนอุบัติเหตุร้ายแรง"},
+{s:"S2", q:"Domino theory (Heinrich): โดมิโน 5 ตัวคืออะไร?", a:"1) พื้นเพทางสังคม 2) ความบกพร่องของบุคคล 3) การกระทำ/สภาพที่ไม่ปลอดภัย 4) อุบัติเหตุ 5) การบาดเจ็บ — ตัดโดมิโนตัวที่ 3 (unsafe act/condition) เพื่อหยุดลูกโซ่"},
+{s:"S2", q:"จุดอ่อนของ Domino theory?", a:"เน้น human error มากเกินไป มองข้ามปัจจัยระบบ/องค์กร"},
+{s:"S2", q:"5M Model มีอะไรบ้าง? (ตัวที่ 5 ระวัง!)", a:"Man (คน) / Machine (เครื่องจักร) / Materials (วัสดุ) / Method (วิธี/SOP) / Management (การบริหาร) — ตัวที่ 5 คือ Management ไม่ใช่ Measurement!"},
+{s:"S2", q:"Systems theory อธิบายอุบัติเหตุอย่างไร?", a:"อุบัติเหตุเกิดเมื่อ Person (host) + Machine (agency) + Environment ล้มเหลวพร้อมกัน — มองเป็นระบบ input → process → output → feedback"},
+{s:"S2", q:"Human factors theory: 3 หมวดของความผิดพลาด?", a:"1) Overload — รับไม่ไหว (เครียด/เหนื่อย/กดดันเวลา) 2) Inappropriate response — รู้แต่ตอบสนองผิด (เมินสัญญาณเตือน/ลัดขั้นตอน) 3) Inappropriate activities — ทำสิ่งที่ไม่ควรทำ (ไม่ทำตาม SOP)"},
+{s:"S2", q:"Swiss cheese model (James Reason) คืออะไร?", a:"ชั้นป้องกันแต่ละชั้นมี 'รู' เหมือนชีสสวิส — เมื่อรูของทุกชั้นเรียงตรงกัน อุบัติเหตุจะทะลุผ่านได้"},
+{s:"S2", q:"Latent failure vs Active failure", a:"Latent = ความล้มเหลวแฝงในระบบ (ออกแบบ/นโยบาย/การบำรุงรักษา) | Active = คนหน้างานพลาดโดยตรง (กดผิด/ลืม)"},
+{s:"S2", q:"Epidemiological theory (Gordon 1949): เทียบกับอะไร?", a:"เทียบอุบัติเหตุกับโรคระบาด: agent = hazard / host = คนงาน / environment = สภาพแวดล้อมการทำงาน — เหมาะกับงานอาชีวอนามัย"},
+{s:"S2", q:"BBS (Behavior-Based Safety): A → B → C คือ?", a:"Antecedent (ตัวกระตุ้น) → Behavior (พฤติกรรม) → Consequence (ผลลัพธ์) — เปลี่ยนพฤติกรรมด้วยการชม/โค้ช/สังเกต ไม่ใช่ลงโทษ"},
+{s:"S2", q:"BBS มี 6 ขั้นตอนอะไรบ้าง?", a:"ระบุพฤติกรรมเป้าหมาย → ฝึกอบรม → สังเกต → ให้ฟีดแบ็ก → เก็บข้อมูล → ปรับปรุงต่อเนื่อง — เป็นแนวทางเชิงรุก (proactive)"},
+{s:"S2", q:"มาตรการป้องกันอุบัติเหตุ 5 กลุ่ม (เรียงลำดับ)", a:"1) Engineering (กำจัด/แยก hazard) 2) Administrative (นโยบาย/ฝึกอบรม) 3) PPE 4) Culture/Leadership 5) Incident reporting"},
+{s:"S2", q:"FTA กับ FMEA วิเคราะห์ทิศทางต่างกันอย่างไร?", a:"FTA = top-down (เริ่มจาก top event ไล่ลงหาสาเหตุ) | FMEA = bottom-up (เริ่มจากชิ้นส่วน/ความล้มเหลว ไล่ขึ้นหาผลกระทบ)"},
+{s:"S2", q:"Accident/Incident theory เน้นบทบาทของใคร?", a:"เน้นบทบาท Management: decision to err → ergonomic traps → management error → system failure"},
+{s:"S2", q:"ทฤษฎีไหนเหมาะใช้อธิบายโรคจากการทำงาน?", a:"Epidemiological theory — เพราะมองแบบโรคระบาด (agent/host/environment)"},
+{s:"S3", q:"Law / Regulation / Standard ต่างกันอย่างไร?", a:"Law = พระราชบัญญัติที่สภาตราขึ้น บังคับทุกคน | Regulation = กฎกระทรวงออกมาบังคับใช้กฎหมาย มีผลบังคับเหมือนกฎหมาย | Standard = ข้อกำหนดทางเทคนิค ไม่บังคับเองจนกว่ากฎหมายจะอ้างถึง"},
+{s:"S3", q:"พ.ร.บ. ความปลอดภัยฯ 2554: สาระสำคัญ?", a:"กฎหมายแม่ด้านความปลอดภัย — ครอบคลุม 54 อุตสาหกรรม; นิติบุคคลที่มีลูกจ้าง 50+ คนต้องมีระบบ SMS มาตรฐานสากล"},
+{s:"S3", q:"โทษสูงสุดตาม พ.ร.บ. 2554?", a:"จำคุกสูงสุด 2 ปี หรือปรับสูงสุด 800,000 บาท"},
+{s:"S3", q:"มาตรา 13 / 14 / 16 ว่าด้วยอะไร?", a:"ม.13: แต่งตั้ง จป. (ต้องจดทะเบียนกับ DLPW) | ม.14: แจ้งอันตราย + ให้คู่มือก่อนเริ่มงาน | ม.16: อบรมทุกระดับ — DLPW (กรมสวัสดิการและคุ้มครองแรงงาน) เป็นผู้ออกกฎกระทรวง"},
+{s:"S3", q:"จป. มีกี่ระดับ? เรียงจากล่างขึ้นบน", a:"5 ระดับ: เทคนิค → เทคนิคขั้นสูง → วิชาชีพ → บริหาร → ระดับบริหาร"},
+{s:"S3", q:"Safety committee: ตั้งเมื่อไร ประชุมบ่อยแค่ไหน?", a:"สถานประกอบการ 50+ คน; ประกอบด้วยนายจ้าง+ลูกจ้าง+จป.; ประชุมทุก 3 เดือน"},
+{s:"S3", q:"ชั่วโมงอบรมขั้นต่ำ: ผู้บริหาร / หัวหน้างาน / ลูกจ้าง?", a:"ผู้บริหาร 6 ชม. / หัวหน้างาน 12 ชม. / ลูกจ้าง 6 ชม. — ลูกจ้างต้องทบทวนทุกปี"},
+{s:"S3", q:"WBGT มาตรฐานงานเบา/กลาง/หนัก?", a:"งานเบา 30°C / งานกลาง 28°C / งานหนัก 26°C — ต้องวัดปีละครั้ง"},
+{s:"S3", q:"มาตรฐานเสียง: 85 dB ทำงานได้กี่ชม.? ระดับไหนห้ามเด็ดขาด?", a:"85 dB = 8 ชม. → 90 = 4 ชม. → 95 = 2 ชม. → 100 = 1 ชม. → 110 = 15 นาที → 115 dB ห้ามสัมผัสเด็ดขาด — ต้องแก้ด้วย engineering ก่อน PPE"},
+{s:"S3", q:"งานที่สูง: กี่เมตรเข้าข่าย? กี่เมตรต้องมีอุปกรณ์กันตก?", a:"≥2 เมตร ถือเป็นงานที่สูง | >4 เมตร ต้องมี safety belt + lifeline + safety net + railing"},
+{s:"S3", q:"Confined space: 4 เงื่อนไข + ข้อบังคับสำคัญ?", a:"1) เข้า-ออกได้ 2) ทางเข้าออกจำกัด 3) ไม่ได้ออกแบบให้คนอยู่ประจำ 4) มีบรรยากาศอันตราย — ต้องวัดอากาศก่อนและระหว่างทำงาน + ขอ permit + ทีม 4 คน (ผู้อนุมัติ/ผู้ควบคุม/ผู้ช่วย/ผู้ปฏิบัติ)"},
+{s:"S3", q:"สิทธิลูกจ้าง 3 ข้อที่ต้องจำ?", a:"1) ได้รับ PPE ฟรี 2) ปฏิเสธงานที่มีอันตรายเร่งด่วนได้ 3) รายงาน near miss ได้โดยไม่ถูกตอบโต้"},
+{s:"S3", q:"กฎกระทรวง 2012 (ไฟ) / 2013 (สารเคมี): ข้อบังคับเด่น?", a:"2012: ประเมินความเสี่ยงไฟทุกพื้นที่ + hot work permit + ซ้อมดับเพลิงปีละครั้ง | 2013: ฉลาก GHS + ฉลากภาษาไทย + SDS ต้องเข้าถึงได้ตลอดเวลา"},
+{s:"S3", q:"กฎกระทรวง 2020 (ตรวจสุขภาพ): ตรวจเมื่อไรบ้าง?", a:"4 จังหวะ: ก่อนจ้าง / เป็นระยะ / หลังสัมผัสสาร / เมื่อออกจากงาน × ปัจจัยเสี่ยง 4 กลุ่ม (เคมี/กายภาพ/ชีวภาพ/การยศาสตร์)"},
+{s:"S4", q:"ISO 45001 มาแทนอะไร? เชื่อมกับมาตรฐานไหนได้?", a:"มาแทน OHSAS 18001 — ใช้โครงสร้าง Annex SL จึงเข้ากันได้กับ ISO 9001 / ISO 14001"},
+{s:"S4", q:"PDCA จับคู่กับ Clause ของ ISO 45001?", a:"Plan = Clause 4–6 | Do = Clause 7–8 | Check = Clause 9 | Act = Clause 10 (Clause 1–3 เป็นบทนำ)"},
+{s:"S4", q:"Hierarchy of controls เรียงลำดับ + จุดสำคัญ?", a:"กำจัด (Elimination) → ทดแทน (Substitution) → วิศวกรรม (Engineering) → บริหารจัดการ (Administrative) → PPE — PPE อยู่ล่างสุดและนายจ้างต้องจัดให้ฟรี"},
+{s:"S4", q:"OHS risk นิยามว่าอย่างไร?", a:"OHS risk = Likelihood × Severity (โอกาสเกิด × ความรุนแรง)"},
+{s:"S4", q:"นโยบาย OHS 6 คำมั่นมีอะไรบ้าง?", a:"1) ป้องกันการบาดเจ็บ/เจ็บป่วย 2) เป็นกรอบตั้งวัตถุประสงค์ 3) ปฏิบัติตามกฎหมาย 4) กำจัดอันตรายและลดความเสี่ยง 5) ปรับปรุงอย่างต่อเนื่อง 6) ให้พนักงานมีส่วนร่วม"},
+{s:"S4", q:"Reprisals ใน ISO 45001 หมายถึงอะไร?", a:"การตอบโต้/แก้แค้นผู้ที่รายงานอันตรายหรือเหตุการณ์ — มาตรฐานห้ามเด็ดขาด ต้องมีช่องทางรายงานที่ปลอดภัย"},
+{s:"S4", q:"MOC คืออะไร? ทำเมื่อไร?", a:"Management of Change — ต้องประเมินความเสี่ยงก่อนมีการเปลี่ยนแปลงใดๆ (เครื่องจักร กระบวนการ คน วัสดุ)"},
+{s:"S4", q:"Audit ตาม ISO 45001 วัดอะไร? ใครตรวจ?", a:"วัด 2 อย่าง: conformance (ทำตามระบบไหม) + effectiveness (ได้ผลไหม) — ผู้ตรวจต้องเป็นกลาง (impartial)"},
+{s:"S4", q:"Management review ใครเป็นคนทบทวน?", a:"Top management เป็นผู้ทบทวน — ดูผล audit, แนวโน้มเหตุการณ์, การปฏิบัติตามกฎหมาย แล้วตัดสินใจเรื่องทรัพยากรและการปรับปรุง"},
+{s:"S4", q:"Corrective action vs Continual improvement ต่างกันอย่างไร?", a:"Corrective action = แก้ไข nonconformity ที่ตรวจพบ (แก้ปัญหาที่เกิด) | Continual improvement = ยกระดับระบบอย่างต่อเนื่อง (ดีขึ้นเรื่อยๆ)"},
+{s:"S4", q:"นิยาม Worker ตาม ISO 45001 ครอบคลุมใคร?", a:"ทุกคนภายใต้การควบคุมขององค์กร — รวมพนักงาน ผู้บริหาร ผู้รับเหมา และ agency (จะจ้างตรงหรือไม่ก็ตาม)"},
+{s:"S4", q:"วัตถุประสงค์ OHS ที่ดีต้องเป็นอย่างไร?", a:"วัดผลได้ (measurable) + มีแผนปฏิบัติ 6 องค์ประกอบ: ทำอะไร (What) ทรัพยากรอะไร (Resources) ใครทำ (Who) เมื่อไร (When) วัดอย่างไร และผนวกเข้ากับธุรกิจ"},
+{s:"S5", q:"Hazard กับ Risk ต่างกันอย่างไร?", a:"Hazard = แหล่งหรือสภาพอันตรายที่มีอยู่ (เช่น สารไวไฟ) | Risk = Likelihood × Severity (โอกาสเกิด × ความรุนแรงของอันตรายนั้น)"},
+{s:"S5", q:"โจทย์: รู้ top event แล้วอยากไล่หาสาเหตุ → ใช้เทคนิคไหน?", a:"FTA (Fault Tree Analysis) — วิเคราะห์แบบ top-down จากเหตุการณ์ไม่พึงประสงค์ลงไปหาสาเหตุราก"},
+{s:"S5", q:"โจทย์: ออกแบบชิ้นส่วน อยากรู้ว่าพังแบบไหนได้บ้าง → ใช้เทคนิคไหน?", a:"FMEA (Failure Mode and Effects Analysis) — วิเคราะห์แบบ bottom-up จากความล้มเหลวของชิ้นส่วนขึ้นไปหาผลกระทบ"},
+{s:"S5", q:"โจทย์: กระบวนการเคมีต่อเนื่อง มีพารามิเตอร์เบี่ยงเบน → ใช้เทคนิคไหน?", a:"HAZOP — ใช้ guideword (เช่น more/less/no/reverse) ผสมกับพารามิเตอร์ (flow/pressure/temperature) หาความเบี่ยงเบน"},
+{s:"S5", q:"โจทย์: งานที่คนทำเป็นขั้นตอน อยากหา hazard ทีละขั้น → ใช้เทคนิคไหน?", a:"JSA (Job Safety Analysis) — แตกงานเป็นขั้นตอนย่อย แล้วระบุ hazard + มาตรการในแต่ละขั้น"},
+{s:"S5", q:"สูตร P(AND) และ P(OR) ของ fault tree?", a:"P(AND) = P(A) × P(B) — ต้องเกิดพร้อมกันทุกขา | P(OR) = P(A) + P(B) − P(A)×P(B) — ขาใดขาหนึ่งเกิดก็พอ (ถ้า P เล็กมากประมาณบวกกันได้)"},
+{s:"S5", q:"RPN คืออะไร? คำนวณอย่างไร? สูงสุดเท่าไร?", a:"Risk Priority Number = SEV × OCC × DET — สเกลของวิชานี้ 1–3 ทั้งสามตัว ค่าสูงสุด 27 — ยิ่งสูงยิ่งต้องแก้ไขก่อน"},
+{s:"S5", q:"Risk matrix ของวิชา: ระดับความเสี่ยงมีอะไรบ้าง? ระดับไหนต้องหยุดงาน?", a:"Lt (ต่ำ) / Ac (ยอมรับได้) / Md (ปานกลาง) / Hg (สูง) / UAC (ยอมรับไม่ได้) — ระดับ UAC ต้องหยุดงานทันที, Hg ลดความเสี่ยงด่วน, Md ควบคุมตามกรอบเวลา"},
+{s:"S5", q:"Likelihood % ของวิชาคำนวณอย่างไร? เกณฑ์ L/M/H?", a:"(ผลรวมคะแนน 10 ข้อ ÷ 30) × 100 — ต่ำกว่า 55% = L, 55–77% = M, มากกว่า 77% = H"},
+{s:"S5", q:"5 ขั้นตอนของ Risk Assessment?", a:"1) ระบุ hazard 2) ระบุว่าใครเสี่ยง 3) ประเมินความเสี่ยง + กำหนดมาตรการ 4) บันทึกและดำเนินการ 5) ทบทวนเป็นระยะ"},
+{s:"S5", q:"กับดัก: OR gate คำนวณผิดกันตรงไหน?", a:"บวกดื้อๆ โดยไม่ลบเทอมซ้ำ P(A)×P(B) — ถ้าความน่าจะเป็นไม่เล็กมาก ต้องใช้สูตรเต็ม P(A)+P(B)−P(A)P(B)"},
+{s:"S5", q:"Checklist กับ What-If ใช้ต่างกันอย่างไร?", a:"Checklist = ตรวจตามรายการที่มีอยู่ เหมาะงานซ้ำๆ ตรวจประจำ | What-If = ระดมสมอง 'ถ้า...จะเกิดอะไร' เหมาะเมื่อข้อมูลน้อย/งานใหม่"},
+{s:"S5", q:"JSA ทำกี่ขั้น? อะไรบ้าง?", a:"5 ขั้น: 1) เลือกงาน 2) แตกเป็นขั้นตอนย่อย 3) ระบุ hazard แต่ละขั้น 4) กำหนดมาตรการป้องกัน 5) สื่อสารให้คนทำงานรู้"},
+{s:"S5", q:"HIRA เป็นเทคนิคแยกต่างหากหรือไม่?", a:"ไม่ใช่ — HIRA (Hazard Identification and Risk Assessment) เป็นชื่อรวมของกระบวนการประเมินความเสี่ยง ไม่ใช่เทคนิคเดี่ยวแบบ HAZOP/FMEA/FTA"},
+{s:"S6", q:"Fire tetrahedron มี 4 ขาอะไรบ้าง?", a:"เชื้อเพลิง (ต้องอยู่ในรูปไอ) + ออกซิเจน (~21%) + ความร้อน + ปฏิกิริยาลูกโซ่ (chain reaction) — ขาดขาใดขาหนึ่งไฟดับ"},
+{s:"S6", q:"วิธีดับไฟ 4 แบบ จับคู่กับขาของ tetrahedron?", a:"Cooling (น้ำ) ตัดความร้อน | Smothering (ผ้าห่ม/โฟม/CO₂) ตัดออกซิเจน | Starvation (ปิดวาล์ว) ตัดเชื้อเพลิง | ผงเคมีแห้ง ตัด chain reaction"},
+{s:"S6", q:"ไฟ Class A คืออะไร? ดับด้วยอะไร?", a:"ของแข็งติดไฟทั่วไป (ไม้ กระดาษ ผ้า) — ดับด้วยน้ำ (cooling)"},
+{s:"S6", q:"ไฟ Class B คืออะไร? ห้ามใช้อะไรดับ?", a:"ของเหลวไวไฟ (น้ำมัน เบนซิน) — ดับด้วยโฟม/CO₂ — ห้ามใช้น้ำเด็ดขาด (น้ำมันลอย ทำใหไฟกระจาย)"},
+{s:"S6", q:"ไฟ Class C คืออะไร? ดับด้วยอะไร?", a:"ไฟฟ้าลัดวงจร/อุปกรณ์มีไฟ — ดับด้วย CO₂ หรือผงเคมีแห้ง — ห้ามใช้น้ำ (ไฟดูด)"},
+{s:"S6", q:"ไฟ Class D และ Class K?", a:"D = โลหะติดไฟ (แมกนีเซียม โซเดียม) — ใช้ผงดับเพลิงเฉพาะ ห้ามน้ำ | K = ไขมันในครัว — ใช้ wet chemical"},
+{s:"S6", q:"PASS ใช้ถังดับเพลิง 4 ขั้นคือ?", a:"Pull (ดึงสลัก) → Aim (เล็งที่ฐานไฟ) → Squeeze (บีบที่จับ) → Sweep (กวาดไปมา)"},
+{s:"S6", q:"Sprinkler ทำงานด้วยอะไร? สูตร Q?", a:"ทำงานด้วยความร้อน (หัวสปริงเกอร์แตกเมื่อร้อนถึงจุด) — ไม่ใช่ควัน | สูตร Q = K × √P"},
+{s:"S6", q:"Smoke detector ต้องทดสอบบ่อยแค่ไหน?", a:"ทดสอบรายเดือน (monthly test)"},
+{s:"S6", q:"กฎกระทรวง 2555 (ไฟ): นายจ้างต้องทำอะไรบ้าง?", a:"ประเมินความเสี่ยงไฟทุกพื้นที่ + แยกเก็บสารเคมีที่ไม่เข้ากัน + ขอ hot work permit + ติดสัญญาณเตือนเสียงและแสง + ติดแผนอพยพ + ซ้อมดับเพลิงปีละครั้ง + อบรมพนักงาน"},
+{s:"S7", q:"กฎกระทรวงสารเคมี 2556: 6 ข้อบังคับมีอะไรบ้าง?", a:"1) ทำบัญชีสารเคมี + จำแนกตาม GHS 2) ฉลากภาษาไทย + SDS เข้าถึงได้ตลอด 3) เก็บตามความเข้ากันได้ (compatibility) 4) ตรวจวัดอากาศให้ต่ำกว่า TLV 5) อบรม + เก็บบันทึก 6) แผนฉุกเฉิน + ซ้อมปีละครั้ง"},
+{s:"S7", q:"ฉลาก GHS มี 6 องค์ประกอบอะไรบ้าง?", a:"1) Signal word 2) Pictogram (ขอบแดง 9 แบบ) 3) Hazard statement (H-code) 4) ข้อมูลผู้ผลิต 5) Precautionary statement (P-code) 6) ชื่อผลิตภัณฑ์"},
+{s:"S7", q:"DANGER กับ WARNING อันไหนรุนแรงกว่า?", a:"DANGER รุนแรงกว่า WARNING — signal word บอกระดับความรุนแรง"},
+{s:"S7", q:"กฎตัด H-code ซ้ำ: ตัวอย่าง?", a:"H410 ตัด H400, H411 ตัด H401, H412 ตัด H402, H314 ตัด H318 — ถ้ามีรหัสที่รุนแรงกว่าครอบคลุมแล้ว ไม่ต้องใส่รหัสที่เบากว่า"},
+{s:"S7", q:"SDS มี 16 หัวข้อ — จำหัวข้อ 4-5-6 อย่างไร?", a:"'4-5-6 = เหตุฉุกเฉิน 3 สถานการณ์': หัวข้อ 4 = ปฐมพยาบาล / 5 = การดับเพลิง / 6 = การจัดการเมื่อหก-รั่วไหล"},
+{s:"S7", q:"สารเคมีเข้าสู่ร่างกายได้กี่เส้นทาง? เส้นทางหลักคือ?", a:"4 เส้นทาง: หายใจ (หลัก — คนหายใจ ~6 ลิตร/นาที) / ผิวหนังและตา / กลืนกิน / ฉีดเข้าร่างกาย"},
+{s:"S7", q:"ทำไมห้ามจัดเก็บสารเคมีเรียงตามตัวอักษร?", a:"เพราะสารที่ชื่อขึ้นต้นอักษรเดียวกันอาจเข้ากันไม่ได้ (incompatible) มาอยู่ติดกัน เสี่ยงปฏิกิริยาอันตราย — ต้องจัดตามความเข้ากันได้"},
+{s:"S7", q:"หลักจัดเก็บสารเคมี 3 ข้อที่ต้องจำ?", a:"1) ของเหลวอันตรายไม่วางเหนือระดับสายตา 2) สารไวไฟห้ามเทลงท่อระบายน้ำ 3) กรด/เบส และ oxidizer/สารไวไฟ ต้องแยกเก็บกัน"},
+{s:"S7", q:"โดนกรด HF ที่ผิวหนัง: ปฐมพยาบาลอย่างไร?", a:"ถอดเสื้อผ้าที่เปื้อน → เช็ดออก → ล้างน้ำ 5–10 นาที (ภายใน 10–15 นาทีแรก) → ส่งแพทย์ทันที"},
+{s:"S7", q:"Hierarchy of controls สำหรับสารเคมี?", a:"กำจัด/ทดแทน → วิศวกรรม (ระบายอากาศ/ตู้ดูดควัน) → บริหารจัดการ → PPE (อยู่สุดท้ายเสมอ)"},
+{s:"S8", q:"Ergonomics มาจากคำว่าอะไร? หลักการคือ?", a:"ergo (งาน) + nomos (กฎ/หลักการ) — หลักการ: 'ปรับงานให้เข้ากับคน' (fitting the task to the human) ไม่ใช่บังคับคนให้เข้ากับงาน"},
+{s:"S8", q:"MSDs คืออะไร? อาการเตือนมีอะไรบ้าง?", a:"ความผิดปกติของระบบกระดูกและกล้ามเนื้อ (เฉียบพลันหรือสะสม) — อาการเตือน: ปวด ชา บวม อ่อนแรง → รายงานเร็วรักษาได้โดยไม่ต้องหยุดงาน"},
+{s:"S8", q:"5 กลุ่ม stressors ทางเออร์โกโนมิกส์?", a:"1) ปัจจัยส่วนบุคคล 2) แรง (ยก/ดึง/ผลัก) 3) ท่าทาง (neutral ดี / awkward เสี่ยง) 4) การเคลื่อนไหว (ซ้ำๆ/ค้าง) 5) สิ่งแวดล้อม (อุณหภูมิ การสั่นสะเทือน)"},
+{s:"S8", q:"วิธียกของที่ถูกต้อง 5 ขั้น?", a:"วางแผนก่อน → ยกให้ชิดตัว → ห้ามบิดตัว → งอเข่า → ออกแรงด้วยขา"},
+{s:"S8", q:"Back belts (เข็มขัดพยุงหลัง) นับเป็น PPE หรือไม่?", a:"ไม่ใช่ PPE — หลักฐานไม่รองรับว่าป้องกันการบาดเจ็บหลังได้ มาตรการที่ถูกคือออกแบบงาน (engineering) ไม่ใช่พึ่งเข็มขัด"},
+{s:"S8", q:"Human error 4 แบบ: slip / lapse / mistake / violation?", a:"Slip = มือลั่นทำผิด (ตั้งใจถูกแต่ทำพลาด) | Lapse = ลืมขั้นตอน | Mistake = คิด/ตัดสินใจผิด | Violation = ตั้งใจฝ่าฝืนกฎ"},
+{s:"S8", q:"แก้ slip / lapse / mistake / violation ต่างกันอย่างไร?", a:"Slip → ออกแบบป้องกันความผิดพลาด (อบรมอย่างเดียวไม่พอ) | Lapse → checklist/ตัวช่วยจำ | Mistake → อบรมให้ความรู้ | Violation → สร้างวัฒนธรรม + บังคับใช้กฎ"},
+{s:"S8", q:"Fatigue (ความล้า) เกิดจากอะไร? ส่งผลอย่างไร?", a:"สาเหตุ: นอนไม่พอ กะงานหมุน ทำงานนานไม่พัก งานจำเจ — ผล: ตอบสนองช้า ตัดสินใจแย่ลง ทำให้ slip/lapse เพิ่ม → จัดการด้วยจำกัดชั่วโมงงาน พักระหว่างงาน และ job rotation"},
+{s:"S8", q:"Power grip กับ Pinch grip อันไหนดีกว่า?", a:"Power grip (กำทั้งมือ) ดีกว่า Pinch grip (หนีบด้วยปลายนิ้ว) — ออกแรงได้มาก เหนื่อยช้ากว่า เสี่ยงน้อยกว่า"},
+{s:"S8", q:"โปรแกรม ergonomics ที่ดีมี 7 องค์ประกอบอะไรบ้าง?", a:"ผู้บริหารมุ่งมั่น / พนักงานมีส่วนร่วม / อบรม / วิเคราะห์สถานที่ทำงาน / มาตรการป้องกัน / ดูแลทางการแพทย์ / ประเมินผล"},
+{s:"SE", q:"ไฟดูดเกิดขึ้นได้ต้องมีเงื่อนไขอะไรบ้าง?", a:"2 ข้อต้องครบ: 1) ร่างกายเป็นทางผ่านของกระแส (ครบวงจร) 2) มีความต่างศักย์มากพอ — แค่แตะแต่ไม่ครบวงจรไม่ดูด (นกเกาะสายไฟเส้นเดียวไม่ตาย)"},
+{s:"SE", q:"ระดับกระแส (mA) กับอาการ: 1 / 10–20 / 30 / 100?", a:"~1 mA เริ่มรู้สึก | 10–20 mA กล้ามเนื้อเกร็งปล่อยไม่ได้ (let-go) | ~30 mA หายใจติดขัด | ~100 mA หัวใจเต้นผิดจังหวะ (fibrillation) เสียชีวิตได้"},
+{s:"SE", q:"Arc flash คืออะไร? วัดความรุนแรงเป็นอะไร?", a:"ประกายไฟระเบิดจากไฟฟ้าลัดวงจร — ความร้อนสูง ~19,000°C พร้อมแรงระเบิดและโลหะหลอมกระเด็น | วัดเป็น incident energy (cal/cm²)"},
+{s:"SE", q:"LOTO 7 ขั้นตอนมีอะไรบ้าง?", a:"1) แจ้งผู้เกี่ยวข้อง 2) ดับ/หยุดเครื่อง 3) แยกแหล่งพลังงาน 4) ล็อก (Lockout) 5) แขวนป้าย (Tagout) 6) คายพลังงานตกค้าง 7) ทดสอบ (ลองสตาร์ทให้แน่ใจว่าไม่ติด)"},
+{s:"SE", q:"หลักสำคัญของกุญแจ LOTO?", a:"'ล็อกของใครของมัน' — มีกี่คนทำงานต้องมีกุญแจเท่านั้นดอก ห้ามถอดล็อกแทนกันเด็ดขาด คนล็อกต้องเป็นคนถอดเอง"},
+{s:"SE", q:"Grounding กับ GFCI ต่างกันอย่างไร?", a:"Grounding (สายดิน) = ให้กระแสรั่วมีทางลัดลงดินแทนผ่านคน + ทำให้เบรกเกอร์ตัดเร็ว | GFCI = เบรกเกอร์กันดูด ตัดวงจรในเสี้ยววินาทีเมื่อกระแสรั่วแค่ ~5 mA"},
+{s:"SE", q:"ระยะปลอดภัย 3 ชั้นตาม NFPA 70E?", a:"Limited approach boundary (คนทั่วไปห้ามเข้า) / Restricted approach boundary (ช่างมีคุณสมบัติ+PPE เท่านั้น) / Arc-flash boundary (ระยะที่ incident energy ปลอดภัย)"},
+{s:"SE", q:"ทำไมพื้นเปียก + ไฟรั่ว ถึงอันตรายกว่าปกติ?", a:"ผิวเปียกทำให้ความต้านทานร่างกายลดลง → กระแสไหลผ่านมากขึ้นที่แรงดันเท่าเดิม (I = V/R) — นี่คือเหตุผลที่ GFCI บังคับใช้ในพื้นที่เปียก"},
+];
+
+/* ---------- logic ---------- */
+let order = CARDS.map((_, i) => i);
+let idx = 0, filter = "ALL", flipped = false;
+let marks = {}; // cardIdx -> 'know' | 'unknown'
+
+const $ = id => document.getElementById(id);
+const cardEl = $("card");
+
+function buildChips() {
+  const box = $("chips");
+  box.innerHTML = "";
+  Object.entries(SESSIONS).forEach(([k, label]) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (k === filter ? " active" : "");
+    b.textContent = label;
+    b.onclick = () => { filter = k; applyFilter(); buildChips(); };
+    box.appendChild(b);
+  });
+}
+function applyFilter() {
+  order = CARDS.map((_, i) => i).filter(i => filter === "ALL" || CARDS[i].s === filter);
+  idx = 0; flipped = false;
+  render();
+}
+function render() {
+  if (order.length === 0) {
+    $("q").textContent = "ไม่มีการ์ดในหมวดนี้";
+    $("a").textContent = "";
+    return;
+  }
+  const c = CARDS[order[idx]];
+  cardEl.classList.remove("flipped"); flipped = false;
+  $("tagF").textContent = (SESSIONS[c.s] || c.s) + " • คำถาม";
+  $("tagB").textContent = (SESSIONS[c.s] || c.s) + " • คำตอบ";
+  $("q").textContent = c.q;
+  $("a").textContent = c.a;
+  const total = order.length;
+  $("pcount").textContent = "ใบที่ " + (idx + 1) + " / " + total;
+  $("counter").textContent = "แตะการ์ดเพื่อพลิก • Space = พลิก • ← → = เปลี่ยนใบ";
+  const k = Object.values(marks).filter(m => m === "know").length;
+  const u = Object.values(marks).filter(m => m === "unknown").length;
+  $("pscore").textContent = "จำได้ " + k + " • ยังไม่ได้ " + u;
+  $("pfill").style.width = ((k + u) / CARDS.length * 100) + "%";
+  const m = marks[order[idx]];
+  $("know").classList.toggle("done", m === "know");
+  $("unknown").classList.toggle("done", m === "unknown");
+}
+function flip() { flipped = !flipped; cardEl.classList.toggle("flipped", flipped); }
+function next() { idx = (idx + 1) % order.length; render(); }
+function prev() { idx = (idx - 1 + order.length) % order.length; render(); }
+function mark(v) {
+  const key = order[idx];
+  marks[key] = (marks[key] === v) ? undefined : v;
+  if (!marks[key]) delete marks[key];
+  render();
+}
+cardEl.onclick = flip;
+$("flip").onclick = e => { e.stopPropagation(); flip(); };
+$("next").onclick = e => { e.stopPropagation(); next(); };
+$("prev").onclick = e => { e.stopPropagation(); prev(); };
+$("know").onclick = e => { e.stopPropagation(); mark("know"); };
+$("unknown").onclick = e => { e.stopPropagation(); mark("unknown"); };
+$("shuffle").onclick = () => {
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  idx = 0; render();
+};
+$("reset").onclick = () => { marks = {}; render(); };
+document.addEventListener("keydown", e => {
+  if (e.code === "Space") { e.preventDefault(); flip(); }
+  else if (e.key === "ArrowRight") next();
+  else if (e.key === "ArrowLeft") prev();
+});
+// touch swipe
+let tx = null;
+cardEl.addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, {passive: true});
+cardEl.addEventListener("touchend", e => {
+  if (tx === null) return;
+  const dx = e.changedTouches[0].clientX - tx;
+  if (dx > 60) prev(); else if (dx < -60) next();
+  tx = null;
+}, {passive: true});
+
+buildChips();
+render();
+</script>
+</body>
+</html>
